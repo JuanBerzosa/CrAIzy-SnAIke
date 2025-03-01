@@ -4,7 +4,12 @@ import random
 import time
 import winsound  # For playing sound on Windows
 
-def generate_food(stdscr, snake, foods):
+# Initialize color constants for easy reference
+SNAKE_COLOR = 1
+FOOD_COLOR = 10
+TEXT_COLOR = 11
+OBSTACLE_COLOR = 12  # New color for obstacles
+def generate_food(stdscr, snake, foods, obstacles):
     screen_height, screen_width = stdscr.getmaxyx()
     # Ensure we stay well within bounds to avoid issues
     # Generate random position (avoiding borders)
@@ -15,7 +20,8 @@ def generate_food(stdscr, snake, foods):
     counter = random.randint(3, 9)
     # Make sure food isn't on the snake or other food items
     if (food_y, food_x) not in [(s[0], s[1]) for s in snake] and \
-    (food_y, food_x) not in [(f[0], f[1]) for f in foods]:
+    (food_y, food_x) not in [(f[0], f[1]) for f in foods] and \
+    (food_y, food_x) not in obstacles:
         return (food_y, food_x, counter, time.time())
 
 def game_over(stdscr, score):
@@ -70,6 +76,7 @@ def init_game(stdscr):
     # Special color pairs
     curses.init_pair(10, curses.COLOR_RED, curses.COLOR_BLACK)      # Food
     curses.init_pair(11, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Text/UI elements
+    curses.init_pair(12, curses.COLOR_WHITE, curses.COLOR_RED)      # Obstacles
     # Create border
     stdscr.border(0)
     stdscr.refresh()
@@ -100,9 +107,10 @@ def init_game(stdscr):
     
     # Generate multiple food items
     foods = []
+    obstacles = []  # New data structure to track obstacles
     max_foods = 1  # Only one food item at a time
     for _ in range(max_foods):
-        new_food = generate_food(stdscr, snake, foods)
+        new_food = generate_food(stdscr, snake, foods, obstacles)
         if new_food:
             foods.append(new_food)
             try:
@@ -115,7 +123,10 @@ def init_game(stdscr):
 
     # Make score accessible within nested functions
     nonlocal_dict = {'score': score}
-
+    
+    # Initialize obstacles list
+    obstacles = []
+    
     # Timing variables
     last_move_time = time.time()
     last_food_update_time = time.time()
@@ -182,15 +193,17 @@ def init_game(stdscr):
                 # Play sound when food timer decreases
                 winsound.Beep(800, 100)  # 800Hz frequency, 100ms duration
                 if counter <= 0:
-                    # Remove food that reached 0
+                    # Convert food to obstacle
                     try:
-                        stdscr.addch(y, x, ' ')  # Clear the food
+                        stdscr.addch(y, x, curses.ACS_BLOCK, curses.color_pair(OBSTACLE_COLOR))
                     except curses.error:
                         pass
+                    # Add to obstacles list and remove from foods
+                    obstacles.append((y, x))
                     foods.pop(i)
                     # Generate a replacement food if below max
                     if len(foods) < max_foods:
-                        new_food = generate_food(stdscr, snake, foods)
+                        new_food = generate_food(stdscr, snake, foods, obstacles)
                         if new_food:
                             foods.append(new_food)
                             try:
@@ -241,6 +254,11 @@ def init_game(stdscr):
             game_over(stdscr, nonlocal_dict['score'])
             return
         
+        # Check for collision with obstacles
+        if (head_y, head_x) in obstacles:
+            game_over(stdscr, nonlocal_dict['score'])
+            return
+        
         # Check if snake eats any food
         food_eaten = False
         for i in range(len(foods)-1, -1, -1):
@@ -255,7 +273,7 @@ def init_game(stdscr):
                 foods.pop(i)
                 
                 # Generate new food
-                new_food = generate_food(stdscr, snake, foods)
+                new_food = generate_food(stdscr, snake, foods, obstacles)
                 if new_food:
                     foods.append(new_food)
                     try:
@@ -283,6 +301,13 @@ def init_game(stdscr):
         except curses.error:
             pass
         # Refresh screen
+        # Redraw obstacles to ensure they remain visible
+        for obstacle_y, obstacle_x in obstacles:
+            try:
+                stdscr.addch(obstacle_y, obstacle_x, curses.ACS_BLOCK, curses.color_pair(OBSTACLE_COLOR))
+            except curses.error:
+                pass
+        
         # Refresh screen
         stdscr.refresh()
 
