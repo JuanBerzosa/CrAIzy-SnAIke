@@ -66,10 +66,10 @@ def init_game(stdscr):
     curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK)       # Value 7
     curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_BLUE)      # Value 8 (unique)
     curses.init_pair(9, curses.COLOR_BLACK, curses.COLOR_GREEN)     # Value 9 (unique)
+
     # Special color pairs
     curses.init_pair(10, curses.COLOR_RED, curses.COLOR_BLACK)      # Food
     curses.init_pair(11, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Text/UI elements
-    
     # Create border
     stdscr.border(0)
     stdscr.refresh()
@@ -132,7 +132,6 @@ def init_game(stdscr):
 
     # Game loop
     while True:
-        # Display score
         # Display score
         score_text = f"Score: {nonlocal_dict['score']}"
         try:
@@ -236,7 +235,7 @@ def init_game(stdscr):
         if head_y <= 0 or head_y >= screen_height-1 or head_x <= 0 or head_x >= screen_width-1:
             game_over(stdscr, nonlocal_dict['score'])
             return
-        
+
         # Check for collision with self
         if (head_y, head_x) in [(s[0], s[1]) for s in snake]:
             game_over(stdscr, nonlocal_dict['score'])
@@ -248,8 +247,7 @@ def init_game(stdscr):
             if head_y == foods[i][0] and head_x == foods[i][1]:
                 # Increase score
                 nonlocal_dict['score'] += foods[i][2]
-                
-                # Add new head with food value color
+
                 # Add new head with food value color
                 food_color = min(foods[i][2], 9)  # Limit to defined color pairs
                 snake.insert(0, (head_y, head_x, food_color))
@@ -267,6 +265,7 @@ def init_game(stdscr):
                 
                 food_eaten = True
                 break
+        
         if not food_eaten:
             # Move snake: add new head, remove tail
             snake.insert(0, (head_y, head_x, snake[0][2]))
