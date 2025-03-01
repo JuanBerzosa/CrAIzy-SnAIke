@@ -93,10 +93,10 @@ def init_game(stdscr):
         except curses.error:
             pass
     
-    # Initial direction (1=right, 2=down, 3=left, 4=up)
-    direction = 1
+    # Initial direction ('right', 'down', 'left', 'up')
+    direction = 'right'
     # Direction character mapping for snake head
-    dir_chars = {1: '>', 2: 'v', 3: '<', 4: '^'}
+    dir_chars = {'right': '>', 'down': 'v', 'left': '<', 'up': '^'}
     
     # Generate multiple food items
     foods = []
@@ -152,17 +152,17 @@ def init_game(stdscr):
         current_time = time.time()
         if buffered_key is not None and current_time - last_direction_change >= direction_change_delay:
             old_direction = direction
-            if buffered_key == curses.KEY_UP and direction != 2:
-                direction = 4
+            if buffered_key == curses.KEY_UP and direction != 'down':
+                direction = 'up'
                 last_direction_change = current_time
-            elif buffered_key == curses.KEY_DOWN and direction != 4:
-                direction = 2
+            elif buffered_key == curses.KEY_DOWN and direction != 'up':
+                direction = 'down'
                 last_direction_change = current_time
-            elif buffered_key == curses.KEY_LEFT and direction != 1:
-                direction = 3
+            elif buffered_key == curses.KEY_LEFT and direction != 'right':
+                direction = 'left'
                 last_direction_change = current_time
-            elif buffered_key == curses.KEY_RIGHT and direction != 3:
-                direction = 1
+            elif buffered_key == curses.KEY_RIGHT and direction != 'left':
+                direction = 'right'
                 last_direction_change = current_time
             
             # Reset the same_direction_start_time if direction has changed
@@ -223,13 +223,13 @@ def init_game(stdscr):
         last_move_time = current_time
         # Calculate new head position
         head_y, head_x, _ = snake[0]
-        if direction == 1:
+        if direction == 'right':
             head_x += 1
-        elif direction == 2:
+        elif direction == 'down':
             head_y += 1
-        elif direction == 3:
+        elif direction == 'left':
             head_x -= 1
-        elif direction == 4:
+        elif direction == 'up':
             head_y -= 1
         
         # Check for collision with walls
