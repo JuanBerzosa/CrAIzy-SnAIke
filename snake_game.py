@@ -5,12 +5,12 @@ import time
 import winsound  # For playing sound on Windows
 
 def generate_food(stdscr, snake, foods):
-    sh, sw = stdscr.getmaxyx()
+    screen_height, screen_width = stdscr.getmaxyx()
     # Ensure we stay well within bounds to avoid issues
     # Generate random position (avoiding borders)
     # Use sh-3 and sw-3 to add extra safety margin from borders
-    food_y = random.randint(1, sh-3)
-    food_x = random.randint(1, sw-3)
+    food_y = random.randint(1, screen_height-3)
+    food_x = random.randint(1, screen_width-3)
     # Generate random countdown value between 3 and 9
     counter = random.randint(3, 9)
     # Make sure food isn't on the snake or other food items
@@ -19,7 +19,7 @@ def generate_food(stdscr, snake, foods):
         return (food_y, food_x, counter, time.time())
 
 def game_over(stdscr, score):
-    sh, sw = stdscr.getmaxyx()
+    screen_height, screen_width = stdscr.getmaxyx()
     stdscr.clear()
     
     game_over_text = "GAME OVER!"
@@ -27,9 +27,9 @@ def game_over(stdscr, score):
     restart_text = "Press 'r' to restart or 'q' to quit"
     
     try:
-        stdscr.addstr(sh//2-2, sw//2-len(game_over_text)//2, game_over_text, curses.color_pair(11) | curses.A_BOLD)
-        stdscr.addstr(sh//2, sw//2-len(score_text)//2, score_text)
-        stdscr.addstr(sh//2+2, sw//2-len(restart_text)//2, restart_text)
+        stdscr.addstr(screen_height//2-2, screen_width//2-len(game_over_text)//2, game_over_text, curses.color_pair(11) | curses.A_BOLD)
+        stdscr.addstr(screen_height//2, screen_width//2-len(score_text)//2, score_text)
+        stdscr.addstr(screen_height//2+2, screen_width//2-len(restart_text)//2, restart_text)
     except curses.error:
         # Handle potential error when writing game over text
         pass
@@ -52,7 +52,7 @@ def init_game(stdscr):
     curses.curs_set(0)  # Hide cursor
     stdscr.timeout(50)  # Faster refresh rate (50ms instead of 150ms)
     stdscr.nodelay(True)  # Non-blocking input
-    sh, sw = stdscr.getmaxyx()  # Screen height and width
+    screen_height, screen_width = stdscr.getmaxyx()  # Screen height and width
     
     # Colors
     curses.start_color()
@@ -75,8 +75,8 @@ def init_game(stdscr):
     stdscr.refresh()
     
     # Initialize snake position
-    snake_head_y = sh // 2
-    snake_head_x = sw // 2
+    snake_head_y = screen_height // 2
+    snake_head_x = screen_width // 2
     
     # Initialize snake as a list of (y, x, color_pair) tuples
     # Start with a snake of length 3
@@ -136,7 +136,7 @@ def init_game(stdscr):
         # Display score
         score_text = f"Score: {nonlocal_dict['score']}"
         try:
-            stdscr.addstr(0, sw//2 - len(score_text)//2, score_text, curses.color_pair(11))
+            stdscr.addstr(0, screen_width//2 - len(score_text)//2, score_text, curses.color_pair(11))
         except curses.error:
             pass
             
@@ -233,7 +233,7 @@ def init_game(stdscr):
             head_y -= 1
         
         # Check for collision with walls
-        if head_y <= 0 or head_y >= sh-1 or head_x <= 0 or head_x >= sw-1:
+        if head_y <= 0 or head_y >= screen_height-1 or head_x <= 0 or head_x >= screen_width-1:
             game_over(stdscr, nonlocal_dict['score'])
             return
         
