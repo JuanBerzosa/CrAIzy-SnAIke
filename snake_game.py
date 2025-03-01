@@ -3,12 +3,23 @@ import curses
 import random
 import time
 import winsound  # For playing sound on Windows
+import enum
 
-# Initialize color constants for easy reference
-SNAKE_COLOR = 1
-FOOD_COLOR = 10
-TEXT_COLOR = 11
-OBSTACLE_COLOR = 12  # New color for obstacles
+# Define color pairs as an enum for better readability
+class ColorPair(enum.IntEnum):
+    SNAKE_BASE = 1
+    SNAKE_VALUE_1 = 1  # Green (same as SNAKE_BASE)
+    SNAKE_VALUE_2 = 2  # Yellow
+    SNAKE_VALUE_3 = 3  # Blue
+    SNAKE_VALUE_4 = 4  # Magenta
+    SNAKE_VALUE_5 = 5  # Cyan
+    SNAKE_VALUE_6 = 6  # White
+    SNAKE_VALUE_7 = 7  # Red
+    SNAKE_VALUE_8 = 8  # White on Blue
+    SNAKE_VALUE_9 = 9  # Black on Green
+    FOOD = 10       # Red
+    TEXT = 11       # Yellow
+    OBSTACLE = 12   # White on Red
 def generate_food(stdscr, snake, foods, obstacles):
     screen_height, screen_width = stdscr.getmaxyx()
     # Ensure we stay well within bounds to avoid issues
@@ -33,7 +44,7 @@ def game_over(stdscr, score):
     restart_text = "Press 'r' to restart or 'q' to quit"
     
     try:
-        stdscr.addstr(screen_height//2-2, screen_width//2-len(game_over_text)//2, game_over_text, curses.color_pair(11) | curses.A_BOLD)
+        stdscr.addstr(screen_height//2-2, screen_width//2-len(game_over_text)//2, game_over_text, curses.color_pair(ColorPair.TEXT) | curses.A_BOLD)
         stdscr.addstr(screen_height//2, screen_width//2-len(score_text)//2, score_text)
         stdscr.addstr(screen_height//2+2, screen_width//2-len(restart_text)//2, restart_text)
     except curses.error:
@@ -63,20 +74,20 @@ def init_game(stdscr):
     # Colors
     curses.start_color()
     # Define color pairs for snake segments based on food values
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)     # Value 1
-    curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)    # Value 2
-    curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)      # Value 3
-    curses.init_pair(4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)   # Value 4
-    curses.init_pair(5, curses.COLOR_CYAN, curses.COLOR_BLACK)      # Value 5
-    curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)     # Value 6
-    curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK)       # Value 7
-    curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_BLUE)      # Value 8 (unique)
-    curses.init_pair(9, curses.COLOR_BLACK, curses.COLOR_GREEN)     # Value 9 (unique)
+    curses.init_pair(ColorPair.SNAKE_VALUE_1, curses.COLOR_GREEN, curses.COLOR_BLACK)     # Value 1
+    curses.init_pair(ColorPair.SNAKE_VALUE_2, curses.COLOR_YELLOW, curses.COLOR_BLACK)    # Value 2
+    curses.init_pair(ColorPair.SNAKE_VALUE_3, curses.COLOR_BLUE, curses.COLOR_BLACK)      # Value 3
+    curses.init_pair(ColorPair.SNAKE_VALUE_4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)   # Value 4
+    curses.init_pair(ColorPair.SNAKE_VALUE_5, curses.COLOR_CYAN, curses.COLOR_BLACK)      # Value 5
+    curses.init_pair(ColorPair.SNAKE_VALUE_6, curses.COLOR_WHITE, curses.COLOR_BLACK)     # Value 6
+    curses.init_pair(ColorPair.SNAKE_VALUE_7, curses.COLOR_RED, curses.COLOR_BLACK)       # Value 7
+    curses.init_pair(ColorPair.SNAKE_VALUE_8, curses.COLOR_WHITE, curses.COLOR_BLUE)      # Value 8 (unique)
+    curses.init_pair(ColorPair.SNAKE_VALUE_9, curses.COLOR_BLACK, curses.COLOR_GREEN)     # Value 9 (unique)
 
     # Special color pairs
-    curses.init_pair(10, curses.COLOR_RED, curses.COLOR_BLACK)      # Food
-    curses.init_pair(11, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Text/UI elements
-    curses.init_pair(12, curses.COLOR_WHITE, curses.COLOR_RED)      # Obstacles
+    curses.init_pair(ColorPair.FOOD, curses.COLOR_RED, curses.COLOR_BLACK)      # Food
+    curses.init_pair(ColorPair.TEXT, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Text/UI elements
+    curses.init_pair(ColorPair.OBSTACLE, curses.COLOR_WHITE, curses.COLOR_RED)      # Obstacles
     # Create border
     stdscr.border(0)
     stdscr.refresh()
@@ -86,13 +97,13 @@ def init_game(stdscr):
     snake_head_x = screen_width // 2
     
     # Initialize snake as a list of (y, x, color_pair) tuples
+    # Initialize snake as a list of (y, x, color_pair) tuples
     # Start with a snake of length 3
     snake = [
-        (snake_head_y, snake_head_x, 1),
-        (snake_head_y, snake_head_x - 1, 1),
-        (snake_head_y, snake_head_x - 2, 1)
+        (snake_head_y, snake_head_x, ColorPair.SNAKE_BASE),
+        (snake_head_y, snake_head_x - 1, ColorPair.SNAKE_BASE),
+        (snake_head_y, snake_head_x - 2, ColorPair.SNAKE_BASE)
     ]
-    
     # Draw initial snake
     for segment in snake:
         try:
@@ -114,7 +125,7 @@ def init_game(stdscr):
         if new_food:
             foods.append(new_food)
             try:
-                stdscr.addch(new_food[0], new_food[1], str(new_food[2]), curses.color_pair(10))
+                stdscr.addch(new_food[0], new_food[1], str(new_food[2]), curses.color_pair(ColorPair.FOOD))
             except curses.error:
                 pass
     
@@ -146,7 +157,7 @@ def init_game(stdscr):
         # Display score
         score_text = f"Score: {nonlocal_dict['score']}"
         try:
-            stdscr.addstr(0, screen_width//2 - len(score_text)//2, score_text, curses.color_pair(11))
+            stdscr.addstr(0, screen_width//2 - len(score_text)//2, score_text, curses.color_pair(ColorPair.TEXT))
         except curses.error:
             pass
             
@@ -195,7 +206,7 @@ def init_game(stdscr):
                 if counter <= 0:
                     # Convert food to obstacle
                     try:
-                        stdscr.addch(y, x, curses.ACS_BLOCK, curses.color_pair(OBSTACLE_COLOR))
+                        stdscr.addch(y, x, curses.ACS_BLOCK, curses.color_pair(ColorPair.OBSTACLE))
                     except curses.error:
                         pass
                     # Add to obstacles list and remove from foods
@@ -207,14 +218,14 @@ def init_game(stdscr):
                         if new_food:
                             foods.append(new_food)
                             try:
-                                stdscr.addch(new_food[0], new_food[1], str(new_food[2]), curses.color_pair(10))
+                                stdscr.addch(new_food[0], new_food[1], str(new_food[2]), curses.color_pair(ColorPair.FOOD))
                             except curses.error:
                                 pass
                 else:
                     # Update the counter display
                     foods[i] = (y, x, counter, foods[i][3])
                     try:
-                        stdscr.addch(y, x, str(counter), curses.color_pair(10))
+                        stdscr.addch(y, x, str(counter), curses.color_pair(ColorPair.FOOD))
                     except curses.error:
                         pass
 
@@ -267,7 +278,7 @@ def init_game(stdscr):
                 nonlocal_dict['score'] += foods[i][2]
 
                 # Add new head with food value color
-                food_color = min(foods[i][2], 9)  # Limit to defined color pairs
+                food_color = min(foods[i][2], 9)  # Limit to defined color pairs (maps to ColorPair.SNAKE_VALUE_1 through ColorPair.SNAKE_VALUE_9)
                 snake.insert(0, (head_y, head_x, food_color))
                 # Remove eaten food
                 foods.pop(i)
@@ -277,7 +288,7 @@ def init_game(stdscr):
                 if new_food:
                     foods.append(new_food)
                     try:
-                        stdscr.addch(new_food[0], new_food[1], str(new_food[2]), curses.color_pair(10))
+                        stdscr.addch(new_food[0], new_food[1], str(new_food[2]), curses.color_pair(ColorPair.FOOD))
                     except curses.error:
                         pass
                 
@@ -304,7 +315,7 @@ def init_game(stdscr):
         # Redraw obstacles to ensure they remain visible
         for obstacle_y, obstacle_x in obstacles:
             try:
-                stdscr.addch(obstacle_y, obstacle_x, curses.ACS_BLOCK, curses.color_pair(OBSTACLE_COLOR))
+                stdscr.addch(obstacle_y, obstacle_x, curses.ACS_BLOCK, curses.color_pair(ColorPair.OBSTACLE))
             except curses.error:
                 pass
         
